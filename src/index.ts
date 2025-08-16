@@ -1,10 +1,6 @@
 import { Env, ChatMessage } from "./types";
 
-// Model ID for Workers AI model
-// https://developers.cloudflare.com/workers-ai/models/
-// const MODEL_ID = "@cf/openai/gpt-oss-120b";
-// const MODEL_ID = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
-// const MODEL_ID = "@cf/meta/llama-4-scout-17b-16e-instruct";
+// Model ID for Workers AI
 const MODEL_ID = "@hf/thebloke/deepseek-coder-6.7b-instruct-awq";
 
 // Default system prompt
@@ -22,41 +18,37 @@ export default {
   ): Promise<Response> {
     const url = new URL(request.url);
 
-    // Handle static assets (frontend)
-    if (url.pathname === "/" || !url.pathname.startsWith("/api/")) {
+    // Serve static assets unless calling the chat API
+    if (!url.pathname.startsWith("/api/")) {
       return env.ASSETS.fetch(request);
     }
 
-    // API Routes
+    // Handle API routes
     if (url.pathname === "/api/chat") {
-      // Handle POST requests for chat
       if (request.method === "POST") {
         return handleChatRequest(request, env);
       }
-
-      // Method not allowed for other request types
       return new Response("Method not allowed", { status: 405 });
     }
 
-    // Handle 404 for unmatched routes
+    // Fallback 404
     return new Response("Not found", { status: 404 });
   },
 } satisfies ExportedHandler<Env>;
 
 /**
- * Handles chat API requests
+ * Handles chat requests using Workers AI
  */
 async function handleChatRequest(
   request: Request,
   env: Env,
 ): Promise<Response> {
   try {
-    // Parse JSON request body
     const { messages = [] } = (await request.json()) as {
       messages: ChatMessage[];
     };
 
-    // Add system prompt if not present
+    // Prepend system prompt if not included
     if (!messages.some((msg) => msg.role === "system")) {
       messages.unshift({ role: "system", content: SYSTEM_PROMPT });
     }
@@ -69,19 +61,18 @@ async function handleChatRequest(
       },
       {
         returnRawResponse: true,
-        // Uncomment to use AI Gateway
+        // Optional Gateway Configuration:
         // gateway: {
-        //   id: "YOUR_GATEWAY_ID", // Replace with your AI Gateway ID
-        //   skipCache: false,      // Set to true to bypass cache
-        //   cacheTtl: 3600,        // Cache time-to-live in seconds
+        //   id: "YOUR_GATEWAY_ID",
+        //   skipCache: false,
+        //   cacheTtl: 3600,
         // },
       },
     );
 
-    // Return streaming response
     return response;
   } catch (error) {
-    console.error("Error processing chat request:", error);
+    console.error("❌ Error processing chat request:", error);
     return new Response(
       JSON.stringify({ error: "Failed to process request" }),
       {
