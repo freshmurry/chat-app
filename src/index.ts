@@ -11,8 +11,8 @@ import { Env, ChatMessage } from "./types";
 
 // Model ID for Workers AI model
 // https://developers.cloudflare.com/workers-ai/models/
-// const MODEL_ID = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
-// const MODEL_ID = "@cf/meta/llama-4-scout-17b-16e-instruct";
+// const MODEL_ID = "@cf/meta/llama-.-b-instruct-fp-fast";
+// const MODEL_ID = "@cf/meta/llama--scout-b-e-instruct";
 const MODEL_ID = "@cf/openai/gpt-oss-120b";
 
 // Default system prompt
@@ -31,7 +31,7 @@ export default {
     const url = new URL(request.url);
 
     // Handle static assets (frontend)
-    if (url.pathname === "/" || !url.pathname.startsWith("/api/")) {
+    if (url.pathname ===/ || !url.pathname.startsWith("/api/")) {
       return env.ASSETS.fetch(request);
     }
 
@@ -43,11 +43,11 @@ export default {
       }
 
       // Method not allowed for other request types
-      return new Response("Method not allowed", { status: 405 });
+      return new Response("Method not allowed", { status:  });
     }
 
-    // Handle 404 for unmatched routes
-    return new Response("Not found", { status: 404 });
+    // Handle  for unmatched routes
+    return new Response("Not found", { status:  });
   },
 } satisfies ExportedHandler<Env>;
 
@@ -60,7 +60,7 @@ async function handleChatRequest(
 ): Promise<Response> {
   try {
     // Parse JSON request body
-    const { messages = [] } = (await request.json()) as {
+    const { messages = } = (await request.json()) as {
       messages: ChatMessage[];
     };
 
@@ -69,31 +69,36 @@ async function handleChatRequest(
       messages.unshift({ role: "system", content: SYSTEM_PROMPT });
     }
 
-    const response = await env.AI.run(
-      MODEL_ID,
-      {
-        messages,
-        max_tokens: 1024,
-      },
-      {
-        returnRawResponse: true,
-        // Uncomment to use AI Gateway
-        // gateway: {
-        //   id: "YOUR_GATEWAY_ID", // Replace with your AI Gateway ID
-        //   skipCache: false,      // Set to true to bypass cache
-        //   cacheTtl: 3600,        // Cache time-to-live in seconds
-        // },
-      },
-    );
+    // Check if env.AI and env.AI.run are defined
+    if (env && env.AI && typeof env.AI.run === 'function') {
+      const response = await env.AI.run(
+        MODEL_ID,
+        {
+          messages,
+          max_tokens: 2048,
+        },
+        {
+          returnRawResponse:,
+          // Uncomment to use AI Gateway
+          // gateway: {
+          //   id: "YOUR_GATEWAY_ID", // Replace with your AI Gateway ID
+          //   skipCache:,      // Set to to bypass cache
+          //   cacheTtl: ,        // Cache time-to-live in seconds
+          // },
+        },
+      );
 
-    // Return streaming response
-    return response;
+      // Return streaming response
+      return response;
+    } else {
+      return new Response('Error: env.AI is not defined or does not have a run method', { status:  });
+    }
   } catch (error) {
     console.error("Error processing chat request:", error);
     return new Response(
       JSON.stringify({ error: "Failed to process request" }),
       {
-        status: 500,
+        status: ,
         headers: { "content-type": "application/json" },
       },
     );
