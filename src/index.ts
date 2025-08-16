@@ -12,7 +12,8 @@ import { Env, ChatMessage } from "./types";
 // Model ID for Workers AI model
 // https://developers.cloudflare.com/workers-ai/models/
 // const MODEL_ID = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
-const MODEL_ID = "@cf/meta/llama-4-scout-17b-16e-instruct";
+// const MODEL_ID = "@cf/meta/llama-4-scout-17b-16e-instruct";
+const MODEL_ID = "@cf/openai/gpt-oss-120b";
 
 // Default system prompt
 const SYSTEM_PROMPT =
